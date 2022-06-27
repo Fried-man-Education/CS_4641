@@ -32,8 +32,19 @@ class GMM(object):
             prob: N x D numpy array. See the above function.
         """
 
+        temp = np.atleast_2d(logit)
+        temp -= np.expand_dims(
+            np.max(temp, axis=1),
+            axis=1
+        )
+        temp = np.exp(temp)
 
-        raise NotImplementedError
+        sig = np.expand_dims(
+            np.sum(temp, axis=1),
+            axis=1
+        )
+
+        return temp / sig
 
     def logsumexp(self, logit):  # [5pts]
         """
@@ -42,9 +53,16 @@ class GMM(object):
         Return:
             s: N x 1 array where s[i,0] = logsumexp(logit[i,:]). See the above function
         """
-
-
-        raise NotImplementedError
+        temp = list(np.asarray(logit).shape)
+        temp[1] = 1
+        top = np.asarray(logit).max(axis=1)
+        total = np.log(
+            np.exp(
+                np.asarray(logit) - top.reshape(temp)
+            ).sum(axis=1)
+        )
+        output = (top + total).reshape(temp[0], 1)
+        return output
 
     # for undergraduate student
     def normalPDF(self, logit, mu_i, sigma_i):  # [5pts]
@@ -93,8 +111,18 @@ class GMM(object):
             sigma: KxDxD numpy array, the diagonal standard deviation of each gaussian.
                 You will have KxDxD numpy array for full covariance matrix case
         """
-
-        raise NotImplementedError
+        pi = np.ones(self.K) * (1.0 / self.K)
+        mu = self.points[
+            np.random.choice(
+                self.N,
+                size=self.K,
+                replace=False
+            )
+        ]
+        sigma = np.array(
+            [np.eye(self.points.shape[1]) for _ in range(self.K)]
+        )
+        return pi, mu, sigma
 
     def _ll_joint(self, pi, mu, sigma, full_matrix=FULL_MATRIX, **kwargs):  # [10 pts]
         """
@@ -108,15 +136,15 @@ class GMM(object):
         Return:
             ll(log-likelihood): NxK array, where ll(i, k) = log pi(k) + log NormalPDF(points_i | mu[k], sigma[k])
         """
-        # === graduate implementation
-        #if full_matrix is True:
-            #...
-
-        # === undergraduate implementation
-        #if full_matrix is False:
-            # ...
-
-        raise NotImplementedError
+        temp = []
+        for k in range(self.K):
+            temp = np.log(pi[k] + LOG_CONST) + np.log(
+                self.multinormalPDF(
+                    self.points, mu[k], sigma[k]
+                ) + LOG_CONST
+            )
+            temp.append(temp)
+        return np.array(temp).T
 
     def _E_step(self, pi, mu, sigma,  full_matrix=FULL_MATRIX, **kwargs):  # [5pts]
         """
@@ -132,15 +160,9 @@ class GMM(object):
         Hint:
             You should be able to do this with just a few lines of code by using _ll_joint() and softmax() defined above.
         """
-        # === graduate implementation
-        #if full_matrix is True:
-            # ...
-
-        # === undergraduate implementation
-        #if full_matrix is False:
-            # ...
-
-        raise NotImplementedError
+        return self.softmax(
+            self._ll_joint(pi, mu, sigma)
+        )
 
     def _M_step(self, gamma, full_matrix=FULL_MATRIX, **kwargs):  # [10pts]
         """
