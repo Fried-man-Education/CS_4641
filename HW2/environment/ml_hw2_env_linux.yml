@@ -1,0 +1,11 @@
+name: ml_hw2
+channels:
+- defaults
+dependencies:
+- matplotlib
+- numpy
+- tqdm
+- imageio
+- scikit-learn
+- notebook
+- jupyterlab
