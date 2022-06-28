@@ -13,7 +13,6 @@ def complete_(data): # [1pts]
     Return:
         labeled_complete: n x D array (n <= N) where values contain both complete features and labels
     """
-    
     raise NotImplementedError
     
 def incomplete_(data): # [1pts]
@@ -89,8 +88,19 @@ class SemiSupervised(object):
         Return:
             prob: N x D numpy array where softmax has been applied row-wise to input logit
         """
-        
-        raise NotImplementedError
+        temp = np.atleast_2d(logit)
+        temp -= np.expand_dims(
+            np.max(temp, axis=1),
+            axis=1
+        )
+        temp = np.exp(temp)
+
+        sig = np.expand_dims(
+            np.sum(temp, axis=1),
+            axis=1
+        )
+
+        return temp / sig
 
     def logsumexp(self,logit): # [0 pts] - can use same as for GMM
         """
@@ -99,8 +109,16 @@ class SemiSupervised(object):
         Return:
             s: N x 1 array where s[i,0] = logsumexp(logit[i,:])
         """
-        
-        raise NotImplementedError
+        temp = list(np.asarray(logit).shape)
+        temp[1] = 1
+        top = np.asarray(logit).max(axis=1)
+        total = np.log(
+            np.exp(
+                np.asarray(logit) - top.reshape(temp)
+            ).sum(axis=1)
+        )
+        output = (top + total).reshape(temp[0], 1)
+        return output
     
     def normalPDF(self, logit, mu_i, sigma_i): # [0 pts] - can use same as for GMM
         """
@@ -114,8 +132,12 @@ class SemiSupervised(object):
         Hint: 
             np.diagonal() should be handy.
         """
-        
-        raise NotImplementedError
+        temp = np.exp(
+            -0.5 * (logit - mu_i) ** 2 / sigma_i.diagonal()
+        ) / np.sqrt(
+            2 * np.pi * sigma_i.diagonal()
+        )
+        return np.prod(temp, axis=1)
     
     def _init_components(self, points, K, **kwargs): # [5 pts] - modify from GMM
         """
@@ -144,8 +166,10 @@ class SemiSupervised(object):
         Return:
             ll(log-likelihood): NxK array, where ll(i, j) = log pi(j) + log NormalPDF(points_i | mu[j], sigma[j])
         """
-        
-        raise NotImplementedError
+        output = np.empty((len(self.points), len(mu)))
+        for x in range(len(mu)):
+            output[:, x] = np.log(pi[x] + 1e-32) + np.log(self.normalPDF(self.points, mu[x], sigma[x]) + 1e-32)
+        return output
 
     def _E_step(self, points, pi, mu, sigma, **kwargs): # [0 pts] - can use same as for GMM
         """
@@ -159,8 +183,9 @@ class SemiSupervised(object):
             
         Hint: You should be able to do this with just a few lines of code by using _ll_joint() and softmax() defined above. 
         """
-
-        raise NotImplementedError
+        return self.softmax(
+            self._ll_joint(pi, mu, sigma)
+        )
 
     def _M_step(self, points, gamma, **kwargs): # [0 pts] - can use same as for GMM
         """
