@@ -193,16 +193,20 @@ class GMM(object):
 
         sigma = np.array(
             [
-                np.matmul(
-                    (gamma[:, x].reshape(self.N, 1) * (self.points - mu[x].reshape(
-                        1,
-                        self.D
-                    ))).T,
-                    self.points - mu[x].reshape(
-                        1,
-                        self.D
+                np.diag(
+                    np.diag(
+                        np.matmul(
+                            (gamma[:, x].reshape(self.N, 1) * (self.points - mu[x].reshape(
+                                1,
+                                self.D
+                            ))).T,
+                            self.points - mu[x].reshape(
+                                1,
+                                self.D
+                            )
+                        ) / temp[x]
                     )
-                ) / temp[x] for x in range(self.K)
+                ) for x in range(self.K)
             ]
         )
 
