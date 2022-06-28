@@ -2,11 +2,11 @@ import numpy as np
 from tqdm import tqdm
 from kmeans import KMeans
 
-
-SIGMA_CONST = 1e-6 # Only add SIGMA_CONST when sigma_i is not invertible
+SIGMA_CONST = 1e-6  # Only add SIGMA_CONST when sigma_i is not invertible
 LOG_CONST = 1e-32
 
-FULL_MATRIX = False # Set False if the covariance matrix is a diagonal matrix
+FULL_MATRIX = False  # Set False if the covariance matrix is a diagonal matrix
+
 
 class GMM(object):
     def __init__(self, X, K, max_iters=100):  # No need to change
@@ -77,9 +77,12 @@ class GMM(object):
         Hint:
             np.diagonal() should be handy.
         """
-
-
-        raise NotImplementedError
+        temp = np.exp(
+            -0.5 * (logit - mu_i) ** 2 / sigma_i.diagonal()
+        ) / np.sqrt(
+            2 * np.pi * sigma_i.diagonal()
+        )
+        return np.prod(temp, axis=1)
 
     # for grad students
     def multinormalPDF(self, logits, mu_i, sigma_i):  # [5pts]
@@ -97,9 +100,7 @@ class GMM(object):
             try using another method involving the current arguments to get the value of D
         """
 
-
         raise NotImplementedError
-
 
     def _init_components(self, **kwargs):  # [5pts]
         """
@@ -136,17 +137,12 @@ class GMM(object):
         Return:
             ll(log-likelihood): NxK array, where ll(i, k) = log pi(k) + log NormalPDF(points_i | mu[k], sigma[k])
         """
-        temp = []
-        for k in range(self.K):
-            temp = np.log(pi[k] + LOG_CONST) + np.log(
-                self.multinormalPDF(
-                    self.points, mu[k], sigma[k]
-                ) + LOG_CONST
-            )
-            temp.append(temp)
-        return np.array(temp).T
+        output = np.empty((len(self.points), len(mu)))
+        for x in range(len(mu)):
+            output[:, x] = np.log(pi[x] + 1e-32) + np.log(self.normalPDF(self.points, mu[x], sigma[x]) + 1e-32)
+        return output
 
-    def _E_step(self, pi, mu, sigma,  full_matrix=FULL_MATRIX, **kwargs):  # [5pts]
+    def _E_step(self, pi, mu, sigma, full_matrix=FULL_MATRIX, **kwargs):  # [5pts]
         """
         Args:
             pi: np array of length K, the prior of each component
@@ -178,16 +174,41 @@ class GMM(object):
         Hint:
             There are formulas in the slides and in the Jupyter Notebook.
         """
+        temp = np.sum(
+            gamma,
+            axis=0
+        )
 
-        # === graduate implementation
-        #if full_matrix is True:
-            # ...
+        mu = np.array(
+            [
+                np.sum(
+                    gamma[:, x].reshape(
+                        self.N,
+                        1
+                    ) * self.points,
+                    axis=0
+                ) / temp[x] for x in range(self.K)
+            ]
+        )
 
-        # === undergraduate implementation
-        #if full_matrix is False:
-            # ...
+        sigma = np.array(
+            [
+                np.matmul(
+                    (gamma[:, x].reshape(self.N, 1) * (self.points - mu[x].reshape(
+                        1,
+                        self.D
+                    ))).T,
+                    self.points - mu[x].reshape(
+                        1,
+                        self.D
+                    )
+                ) / temp[x] for x in range(self.K)
+            ]
+        )
 
-        raise NotImplementedError
+        pi = temp / self.N
+
+        return pi, mu, sigma
 
     def __call__(self, full_matrix=FULL_MATRIX, abs_tol=1e-16, rel_tol=1e-16, **kwargs):  # No need to change
         """
