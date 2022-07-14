@@ -94,10 +94,10 @@ class PCA(object):
             
         Return: None
         """
-        raise NotImplementedError
-
-
-
+        self.fit(X)
+        plt.scatter(self.transform(X, K=2)[y == 0, 0], self.transform(X, K=2)[y == 0, 1], c='blue', label='0')
+        plt.scatter(self.transform(X, K=2)[y == 1, 0], self.transform(X, K=2)[y == 1, 1], c='magenta', label='1')
+        plt.scatter(self.transform(X, K=2)[y == 2, 0], self.transform(X, K=2)[y == 2, 1], c='red', label='2')
 
         ##################### END YOUR CODE ABOVE, DO NOT CHANGE BELOW #######################
         plt.legend()
