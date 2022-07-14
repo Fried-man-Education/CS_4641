@@ -26,10 +26,11 @@ class PCA(object):
             self.S: (min(N,D), ) numpy array
             self.V: (min(N,D), D) numpy array (no need to transpose what is returned from np.linalg.svd)
         """
-        raise NotImplementedError
-
-
-
+        X = (X - X.mean(axis=0))
+        self.U, self.S, self.V = np.linalg.svd(
+            X,
+            full_matrices=False
+        )
 
     def transform(self, data, K=2): # 2 pts
         """
@@ -43,10 +44,7 @@ class PCA(object):
         Return:
             X_new: (N,K) numpy array corresponding to data obtained by applying PCA on data
         """
-        raise NotImplementedError
-
-
-
+        return self.U[:, : K] * self.S[: K]
 
     def transform_rv(self, data, retained_variance=0.99): # 3 pts
         """
@@ -62,10 +60,20 @@ class PCA(object):
             X_new: (N,K) numpy array corresponding to data obtained by applying PCA on data, where K is the number of columns
                    to be kept to ensure retained variance value is retained_variance
         """
-        raise NotImplementedError
-
-
-
+        return self.transform(
+            data,
+            np.argwhere(
+                np.cumsum(
+                    np.square(self.S)[
+                        np.argsort(
+                            np.square(self.S)
+                        )[:: -1]
+                    ]
+                ) / np.sum(
+                    np.square(self.S)
+                ) >= retained_variance
+            )[0][0] + 1
+        )
 
     def get_V(self):
         """ Getter function for value of V """
