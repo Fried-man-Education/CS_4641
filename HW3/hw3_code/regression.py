@@ -15,7 +15,11 @@ class Regression(object):
         Return:
             A float value
         """
-        raise NotImplementedError
+        return np.sqrt(
+            (
+                (pred - label) ** 2
+            ).mean()
+        )
     
     def construct_polynomial_feats(self, x, degree): # [5pts]
         """
@@ -54,7 +58,14 @@ class Regression(object):
                   [ x_{3,1}^3  x_{3,2}^3]]]
 
         """
-        raise NotImplementedError
+        return np.power(
+            np.repeat(
+                x.reshape(-1, 1),
+                degree + 1,
+                axis=1
+            ),
+            np.arange(degree + 1)
+        )
 
 
     def predict(self, xtest, weight): # [5pts]
@@ -67,7 +78,7 @@ class Regression(object):
         Return:
             prediction: (N,1) numpy array, the predicted labels
         """
-        raise NotImplementedError
+        return xtest @ weight
 
     # =================
     # LINEAR REGRESSION
@@ -84,9 +95,10 @@ class Regression(object):
         Return:
             weight: (D,1) numpy array, the weights of linear regression model
         """
-        raise NotImplementedError
-
-        
+        return np.dot(
+            np.linalg.pinv(xtrain),
+            ytrain
+        )
 
     def linear_fit_GD(self, xtrain, ytrain, epochs=5, learning_rate=0.001): # [5pts]
         """
@@ -136,10 +148,13 @@ class Regression(object):
         Return:
             weight: (D,1) numpy array, the weights of ridge regression model
         """
-        raise NotImplementedError
+        return np.linalg.pinv(
+            xtrain.T
+            @ xtrain
+            + c_lambda
+            * np.identity(xtrain.shape[1])
+        ) @ xtrain.T @ ytrain
 
-
-        
     def ridge_fit_GD(self, xtrain, ytrain, c_lambda, epochs=500, learning_rate=1e-7): # [5pts]
         """
         Args:
@@ -190,6 +205,25 @@ class Regression(object):
         # For cross validation, use 10-fold method and only use it for your training data (you already have the train_indices to get training data).
         # For the training data, split them in 10 folds which means that use 10 percent of training data for test and 90 percent for training.
         """
-        raise NotImplementedError
+        output = []
+        for i in range(kfold):
+            xSplit = (np.split(X, kfold)).copy()
+            ySplit = (np.split(y, kfold)).copy()
+
+            output.append(
+                self.rmse(
+                    ySplit.pop(i),
+                    self.predict(
+                        xSplit.pop(i),
+                        self.ridge_fit_closed(
+                            np.vstack(xSplit),
+                            np.vstack(ySplit),
+                            c_lambda
+                        )
+                    )
+                )
+            )
+
+        return np.mean(output)
 
 
