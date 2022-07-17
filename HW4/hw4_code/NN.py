@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_diabetes
 from sklearn.preprocessing import MinMaxScaler
@@ -31,7 +31,7 @@ class dlnet:
             lr: learning rate
             sam: number of training samples we have
 
-        '''        
+        '''
         self.X=x # features
         self.Y=y # ground truth labels
 
@@ -44,28 +44,28 @@ class dlnet:
         self.loss = [] # list to store loss values
         self.batch_y = [] # list of y batched numpy arrays
 
-        self.iter = 0 # iterator to index into data for making a batch 
-        self.batch_size = batch_size # batch size 
-        
+        self.iter = 0 # iterator to index into data for making a batch
+        self.batch_size = batch_size # batch size
+
         self.lr=lr # learning rate
         self.sam = self.Y.shape[1] # number of training samples we have
         self._estimator_type = 'classifier'
-        self.neural_net_type = "Leaky Relu -> Tanh" 
+        self.neural_net_type = "Leaky Relu -> Tanh"
 
 
 
 
-    def nInit(self): 
+    def nInit(self):
         '''
         This method initializes the neural network variables, it is already implemented for you. 
         Check it and relate to the mathematical description above.
         You are going to use these variables in forward and backward propagation.
-        '''   
+        '''
         np.random.seed(1)
-        self.param['theta1'] = np.random.randn(self.dims[1], self.dims[0]) / np.sqrt(self.dims[0]) 
-        self.param['b1'] = np.zeros((self.dims[1], 1))        
-        self.param['theta2'] = np.random.randn(self.dims[2], self.dims[1]) / np.sqrt(self.dims[1]) 
-        self.param['b2'] = np.zeros((self.dims[2], 1))     
+        self.param['theta1'] = np.random.randn(self.dims[1], self.dims[0]) / np.sqrt(self.dims[0])
+        self.param['b1'] = np.zeros((self.dims[1], 1))
+        self.param['theta2'] = np.random.randn(self.dims[2], self.dims[1]) / np.sqrt(self.dims[1])
+        self.param['b2'] = np.zeros((self.dims[2], 1))
 
 
     def Leaky_Relu(self,alpha, u):
@@ -77,10 +77,7 @@ class dlnet:
             alpha: the slope coefficent of the negative part.
         return: Leaky_Relu(u) 
         '''
-        #TODO: implement this 
-        
-
-        
+        return np.maximum(u, 0)
 
     def Tanh(self, u):
         '''
@@ -89,11 +86,9 @@ class dlnet:
         Input: u of any dimension
         return: Tanh(u) 
         '''
-        #TODO: implement this 
-        
+        return (np.exp(np.copy(u)) - np.exp(-1 * np.copy(u))) \
+               / (np.exp(np.copy(u)) + np.exp(-1 * np.copy(u)))
 
-    
-    
     def dL_Relu(self,alpha, u):
         '''
         This method implements element wise differentiation of Leaky Relu, it is already implemented for you.  
@@ -114,11 +109,8 @@ class dlnet:
         Input: u of any dimension
         return: dTanh(u) 
         '''
-        
         o = np.tanh(u)
         return 1-o**2
-    
-    
 
     def nloss(self,y, yh):
         '''
@@ -129,8 +121,11 @@ class dlnet:
 
         return: MSE 1x1: loss value 
         '''
-        
-        #TODO: implement this 
+        return np.array(
+            [
+                np.sum((y - yh) ** 2) / (2 * np.shape(y)[1])
+            ]
+        )
 
 
 
@@ -143,20 +138,29 @@ class dlnet:
 
         Input: x DxN: input
         return: o2 1xN
-        '''  
-        #TODO: implement this 
-            
+        '''
+
         self.ch['X'] = x #keep
-            
-        u1, o1, u2, o2 = None, None, None, None #remove this for implementation
-            
+
+        u1 = np.dot(
+            self.param['theta1'],
+            x
+        ) + self.param['b1']
+        o1 = np.maximum(u1, 0)
+
+        u2 = np.dot(
+            self.param['theta2'],
+            o1
+        ) + self.param['b2']
+        o2 = self.Tanh(u2)
 
 
-        self.ch['u1'],self.ch['o1']=u1,o1 #keep 
+
+        self.ch['u1'],self.ch['o1']=u1,o1 #keep
         self.ch['u2'],self.ch['o2']=u2,o2 #keep
 
         return o2 #keep
-    
+
 
     def backward(self, y, yh):
         '''
@@ -170,12 +174,12 @@ class dlnet:
 
         Return: dLoss_theta2 (1x15), dLoss_b2 (1x1), dLoss_theta1 (15xD), dLoss_b1 (15x1)
 
-        '''    
-        #TODO: implement this 
-             
+        '''
+        #TODO: implement this
+
         dLoss_theta2, dLoss_b2, dLoss_theta1, dLoss_b1 = None, None, None, None #remove this for implementation
-      
-            
+
+
         # parameters update, no need to change these lines
         self.param["theta2"] = self.param["theta2"] - self.lr * dLoss_theta2 #keep
         self.param["b2"] = self.param["b2"] - self.lr * dLoss_b2 #keep
@@ -195,13 +199,13 @@ class dlnet:
         Input: x DxN: input
                y 1xN: labels
                iter: scalar, number of epochs to iterate through
-        ''' 
-        
-        #Todo: implement this 
-        
-       
-    
-    #bonus for undergrdauate students 
+        '''
+
+        #Todo: implement this
+
+
+
+    #bonus for undergrdauate students
     def batch_gradient_descent(self, x, y, iter = 60000, local_test=False):
         '''
         This function is an implementation of the batch gradient descent algorithm
@@ -231,12 +235,12 @@ class dlnet:
                     appending/printing out loss and y batch arrays
 
         '''
-        
-        #Todo: implement this 
-        
+
+        #Todo: implement this
 
 
-    def predict(self, x): 
+
+    def predict(self, x):
         '''
         This function predicts new data points
         It is implemented for you
