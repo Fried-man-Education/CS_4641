@@ -248,7 +248,7 @@ class dlnet:
                iter: scalar, number of epochs to iterate through
         '''
         self.nInit()
-        
+
         for i in range(iter):
             temp = self.forward(x)
             self.backward(y, temp)
