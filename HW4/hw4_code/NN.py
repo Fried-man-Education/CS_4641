@@ -77,7 +77,7 @@ class dlnet:
             alpha: the slope coefficent of the negative part.
         return: Leaky_Relu(u) 
         '''
-        return np.maximum(u, 0)
+        return np.maximum(u, 0) + alpha * np.minimum(u, 0)
 
     def Tanh(self, u):
         '''
@@ -146,7 +146,7 @@ class dlnet:
             self.param['theta1'],
             self.ch['X']
         ) + self.param['b1']
-        o1 = self.Leaky_Relu(0, u1)
+        o1 = self.Leaky_Relu(0.05, u1)
 
         u2 = np.dot(
             self.param['theta2'],
@@ -176,29 +176,56 @@ class dlnet:
 
         '''
         dLoss_theta2 = np.matmul(
-            (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2']),
-            self.ch['o1'].T
-        ) / y.shape[1]
-        dLoss_b2 = np.sum(
-            (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
-        ) / y.shape[1]
-
-        dLoss_theta1 = np.matmul(
-            np.matmul(
-                self.param["theta2"].T,
-                (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
-            ) * self.dTanh(self.ch['u1']),
-            self.X.T
+            np.multiply(
+                (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                self.dTanh(self.ch['u2'])
+            ),
+            (self.ch['o1']).T
         )
-        dLoss_b1 = np.sum(
-            np.matmul(
-                self.param["theta2"].T,
-                (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
-            ) * self.dTanh(self.ch['u1']),
-            axis=1,
-            keepdims=True
-        ) / y.shape[1]
+        dLoss_b2 = np.matmul(
+            np.multiply(
+                (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                self.dTanh(self.ch['u2'])
+            ),
+            np.ones(
+                (
+                    np.multiply(
+                        (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                        self.dTanh(self.ch['u2'])
+                    ).shape[1],
+                    1
+                )
+            )
+        )
 
+        dLoss_theta1 = np.dot(
+            np.dot(
+                self.param['theta2'].T,
+                np.multiply(
+                    (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                    self.dTanh(self.ch['u2'])
+                )
+            ) * self.dL_Relu(0.05, self.ch['o1']),
+            self.ch['X'].T
+        )
+        dLoss_b1 = np.dot(
+            np.dot(
+                self.param['theta2'].T,
+                np.multiply(
+                    (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                    self.dTanh(self.ch['u2'])
+                )
+            ) * self.dL_Relu(0.05, self.ch['o1']),
+            np.ones(
+                (
+                    np.multiply(
+                        (self.ch['o2'] - y) * (1 / np.shape(self.ch['X'])[1]),
+                        self.dTanh(self.ch['u2'])
+                    ).shape[1],
+                    1
+                )
+            )
+        )
 
         # parameters update, no need to change these lines
         self.param["theta2"] = self.param["theta2"] - self.lr * dLoss_theta2 #keep
@@ -220,8 +247,13 @@ class dlnet:
                y 1xN: labels
                iter: scalar, number of epochs to iterate through
         '''
-
-        #Todo: implement this
+        self.nInit()
+        
+        for i in range(iter):
+            temp = self.forward(x)
+            self.backward(y, temp)
+            if i % 1000 == 0:
+                self.loss.append(self.nloss(y, temp))
 
 
 
