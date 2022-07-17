@@ -1,0 +1,13 @@
+name: ml_hw4
+channels:
+    - defaults
+dependencies:
+    - matplotlib
+    - numpy
+    - imageio
+    - scikit-learn
+    - notebook
+    - jupyterlab
+    - tensorflow
+    - keras
+    - pandas
