@@ -34,16 +34,16 @@ class RandomForest(object):
         if random_seed is not None:             # DO NOT REMOVE
             np.random.seed(seed = random_seed)  # DO NOT REMOVE
 
-        ############# Get Row Indices First - write your code below #####################
-
-
-        #################################################################################
-
-        ############# Get Col Indices Second - write your code below ####################
- 
-
-        ##################################################################################
-        raise NotImplementedError # delete this
+        return np.random.choice(
+            num_training,
+            num_training,
+            replace=True
+        ), \
+               np.random.choice(
+                   num_features,
+                   int(num_features * self.max_features),
+                   replace=False
+               )
         
 
             
@@ -73,7 +73,15 @@ class RandomForest(object):
         Returns: 
             None. Calling this function should train the decision trees held in self.decision_trees
         """
-        raise NotImplementedError # delete this
+        self.bootstrapping(
+            X.shape[0],
+            X.shape[1]
+        )
+        for i in range(self.n_estimators):
+            self.decision_trees[i].fit(
+                X[self.bootstraps_row_indices[i]][:, self.feature_indices[i]],
+                y[self.bootstraps_row_indices[i]]
+            )
      
     def OOB_score(self, X, y):
         # helper function. You don't have to modify it
@@ -119,8 +127,8 @@ def select_hyperparameters():
         max_depth: int number (e.g 4)
         max_features: a float between 0.0-1.0 (e.g 0.1)
     """
-    n_estimators = None
-    max_depth = None
-    max_features = None
-    raise NotImplementedError # delete this
+    n_estimators = 2
+    max_depth = 4
+    max_features = 0.8
+    return n_estimators, max_depth, max_features
     
