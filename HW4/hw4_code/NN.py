@@ -144,9 +144,9 @@ class dlnet:
 
         u1 = np.dot(
             self.param['theta1'],
-            x
+            self.ch['X']
         ) + self.param['b1']
-        o1 = np.maximum(u1, 0)
+        o1 = self.Leaky_Relu(0, u1)
 
         u2 = np.dot(
             self.param['theta2'],
@@ -175,9 +175,29 @@ class dlnet:
         Return: dLoss_theta2 (1x15), dLoss_b2 (1x1), dLoss_theta1 (15xD), dLoss_b1 (15x1)
 
         '''
-        #TODO: implement this
+        dLoss_theta2 = np.matmul(
+            (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2']),
+            self.ch['o1'].T
+        ) / y.shape[1]
+        dLoss_b2 = np.sum(
+            (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
+        ) / y.shape[1]
 
-        dLoss_theta2, dLoss_b2, dLoss_theta1, dLoss_b1 = None, None, None, None #remove this for implementation
+        dLoss_theta1 = np.matmul(
+            np.matmul(
+                self.param["theta2"].T,
+                (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
+            ) * self.dTanh(self.ch['u1']),
+            self.X.T
+        )
+        dLoss_b1 = np.sum(
+            np.matmul(
+                self.param["theta2"].T,
+                (yh - y) / y.shape[1] * self.dL_Relu(0, self.ch['o2'])
+            ) * self.dTanh(self.ch['u1']),
+            axis=1,
+            keepdims=True
+        ) / y.shape[1]
 
 
         # parameters update, no need to change these lines
