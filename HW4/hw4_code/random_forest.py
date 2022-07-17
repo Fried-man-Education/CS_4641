@@ -127,8 +127,8 @@ def select_hyperparameters():
         max_depth: int number (e.g 4)
         max_features: a float between 0.0-1.0 (e.g 0.1)
     """
-    n_estimators = 12
-    max_depth = 5
-    max_features = 0.95
+    n_estimators = 7
+    max_depth = 10
+    max_features = 0.7
     return n_estimators, max_depth, max_features
     
