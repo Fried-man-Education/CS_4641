@@ -10,8 +10,9 @@ def create_nl_feature(X):
                 additional features added to X such that it
                 can classify the points in the dataset.
     '''
-    
-    raise NotImplementedError
-
-
-    
+    output = np.zeros((
+        X.shape[0],
+        1
+    ))
+    for i in range(X.shape[0]): output[i] = X[i][0] * X[i][1]
+    return np.append(X, output, axis=1)
